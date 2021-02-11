@@ -13,6 +13,6 @@ except URLError as e:
     print("The server could not be found!")
 else:
     bsobj = BeautifulSoup(html, 'lxml')
-    gpu = bsobj.findAll("a", {"class":"sku-image"})
+    gpu = bsobj.findAll()
     print(gpu)
 
