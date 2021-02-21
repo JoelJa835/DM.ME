@@ -23,3 +23,4 @@ else:
         gpu_price = gpu_content.find('a',class_ = 'js-sku-link sku-link').text.replace('από','')
         print(f'{gpu_title} costs {gpu_price}')
 
+
