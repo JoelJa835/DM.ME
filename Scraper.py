@@ -4,6 +4,11 @@ from typing import List
 import requests
 from bs4 import BeautifulSoup
 import sqlite3
+from matplotlib import pyplot as plt
+import datetime
+
+
+
 
 #Inserting scraped data to database
 def InsertToDatabase(gpuList):
@@ -72,16 +77,55 @@ def RetrieveFromDb():
     cursor = sqliteConnection.cursor()
     cursor.execute(sqlite_select_query)
     records = cursor.fetchall()
+
+    sqlite_select_query = """SELECT Title from Gpus"""
+    cursor.execute(sqlite_select_query)
+    gpuTitles = cursor.fetchall()
+
+    sqlite_select_query = """SELECT Price from Gpus"""
+    cursor.execute(sqlite_select_query)
+    gpuPrices = cursor.fetchall()
+
     print("Total rows are:  ", len(records))
     print("Printing each row:")
     for row in records:
         print("Title: ", row[0])
         print("Price: ", row[1])
     cursor.close()
+    return records
+
+
+def CreateAndInsertIntoGpuTables(records):
+    sqliteConnection = sqlite3.connect('SQLite_Python.db')
+    cursor = sqliteConnection.cursor()
+    for object in records:
+        gpuTitle = str(object[0])
+        gpuTitle = gpuTitle.replace(" ","_").replace("(","_").replace(")","_").replace(",","_").replace("'","_").replace(".","_").replace("-","_")
+        gpuPrice = str(object[1])
+        sqlite_create_gpu_table_query = '''CREATE TABLE IF NOT EXISTS ''' + gpuTitle +'''(joiningDate timestamp, Price TEXT NOT NULL)'''
+        sqlite_insert_gpu_query = """INSERT INTO """ + gpuTitle +"""(joiningDate , Price) VALUES (?, ?)"""
+        print(sqlite_insert_gpu_query)
+        helper = (gpuPrice,datetime.datetime.now())
+        cursor.execute(sqlite_create_gpu_table_query)
+        cursor.executemany(sqlite_insert_gpu_query,[helper])
+    sqliteConnection.commit()
+
+    for object in records:
+        gpuTitle = str(object[0])
+        gpuTitle = gpuTitle.replace(" ","_").replace("(","_").replace(")","_").replace(",","_").replace("'","_").replace(".","_").replace("-","_")
+        sqlite_select_query = """SELECT * FROM """+gpuTitle
+        cursor.execute( sqlite_select_query)
+        data = cursor.fetchall()
+        for row in data:
+            print("Price: ", row[0])
+            print("Date: ", row[1])
+    cursor.close()
+
 
 def main():
     ScrapingGpus()
-    RetrieveFromDb()
+    records = RetrieveFromDb()
+    CreateAndInsertIntoGpuTables(records)
         
 
 if __name__ == "__main__":
