@@ -4,7 +4,6 @@ from typing import List
 import requests
 from bs4 import BeautifulSoup
 import sqlite3
-from matplotlib import pyplot as plt
 import datetime
 
 
@@ -100,7 +99,8 @@ def CreateAndInsertIntoGpuTables(records):
     cursor = sqliteConnection.cursor()
     for object in records:
         gpuTitle = str(object[0])
-        gpuTitle = gpuTitle.replace(" ","_").replace("(","_").replace(")","_").replace(",","_").replace("'","_").replace(".","_").replace("-","_")
+        print(gpuTitle)
+        gpuTitle = gpuTitle.replace(" ","_").replace("(","_").replace(")","_").replace(",","_").replace("'","_").replace(".","_").replace("-","_").replace("/","_")
         gpuPrice = str(object[1])
         sqlite_create_gpu_table_query = '''CREATE TABLE IF NOT EXISTS ''' + gpuTitle +'''(joiningDate timestamp, Price TEXT NOT NULL)'''
         sqlite_insert_gpu_query = """INSERT INTO """ + gpuTitle +"""(joiningDate , Price) VALUES (?, ?)"""
@@ -109,16 +109,18 @@ def CreateAndInsertIntoGpuTables(records):
         cursor.execute(sqlite_create_gpu_table_query)
         cursor.executemany(sqlite_insert_gpu_query,[helper])
     sqliteConnection.commit()
-
-    for object in records:
-        gpuTitle = str(object[0])
-        gpuTitle = gpuTitle.replace(" ","_").replace("(","_").replace(")","_").replace(",","_").replace("'","_").replace(".","_").replace("-","_")
-        sqlite_select_query = """SELECT * FROM """+gpuTitle
+    print("HEre")
+    for obj in records:
+        gpTitle = str(obj[0])
+        gpTitle = gpTitle.replace(" ","_").replace("(","_").replace(")","_").replace(",","_").replace("'","_").replace(".","_").replace("-","_").replace("/","_")
+        print(gpTitle)
+        sqlite_select_query = """SELECT * FROM """+gpTitle
         cursor.execute( sqlite_select_query)
         data = cursor.fetchall()
         for row in data:
             print("Price: ", row[0])
             print("Date: ", row[1])
+            print("Finished")
     cursor.close()
 
 
