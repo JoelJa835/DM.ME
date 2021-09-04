@@ -50,7 +50,7 @@ def ScrapingGpus():
         #Connecting to database
         sqliteConnection = sqlite3.connect('SQLite_Python.db')
         sqlite_create_table_query = '''CREATE TABLE IF NOT EXISTS Gpus (
-                                    Title TEXT NOT NULL, Price TEXT NOT NULL)'''
+                                    Title TEXT  PRIMARY KEY NOT NULL , Price TEXT NOT NULL)'''
 
         cursor = sqliteConnection.cursor()
         print("Successfully Connected to SQLite")
