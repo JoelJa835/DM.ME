@@ -50,7 +50,11 @@ def ScrapingGpus():
         #Connecting to database
         sqliteConnection = sqlite3.connect('SQLite_Python.db')
         sqlite_create_table_query = '''CREATE TABLE IF NOT EXISTS Gpus (
+<<<<<<< HEAD
                                     Title TEXT  PRIMARY KEY NOT NULL , Price TEXT NOT NULL)'''
+=======
+                                    Title TEXT NOT NULL, Price REAL NOT NULL)'''
+>>>>>>> 80c4a5c891f2534acdb2ecfa5db4edbffa8c5d10
 
         cursor = sqliteConnection.cursor()
         print("Successfully Connected to SQLite")
@@ -64,7 +68,9 @@ def ScrapingGpus():
         for gpu in gpus:
             gpu_content = gpu.find('div', class_ = 'card-content')
             gpu_title = gpu_content.find('a', class_ = 'js-sku-link').get('title')
-            gpu_price = gpu_content.find('a',class_ = 'js-sku-link sku-link').text.replace('€','').replace('από','')
+            gpu_price = (gpu_content.find('a',class_ = 'js-sku-link sku-link').text.replace('€','').replace('από','').replace(' ','').replace(',','.').split('.'))
+            gpu_price = gpu_price[0]+'.'+gpu_price[1]
+            gpu_price = float(gpu_price)
             GPU=(gpu_title,gpu_price)
             list.append(GPU)
         InsertToDatabase(list)
@@ -99,29 +105,36 @@ def CreateAndInsertIntoGpuTables(records):
     cursor = sqliteConnection.cursor()
     for object in records:
         gpuTitle = str(object[0])
-        print(gpuTitle)
         gpuTitle = gpuTitle.replace(" ","_").replace("(","_").replace(")","_").replace(",","_").replace("'","_").replace(".","_").replace("-","_").replace("/","_")
-        gpuPrice = str(object[1])
-        sqlite_create_gpu_table_query = '''CREATE TABLE IF NOT EXISTS ''' + gpuTitle +'''(joiningDate timestamp, Price TEXT NOT NULL)'''
-        sqlite_insert_gpu_query = """INSERT INTO """ + gpuTitle +"""(joiningDate , Price) VALUES (?, ?)"""
-        print(sqlite_insert_gpu_query)
-        helper = (gpuPrice,datetime.datetime.now())
+        gpuPrice = float(object[1])
+        
+        helper = (gpuPrice,datetime.datetime.today().strftime("%d/%m/%Y"))
+
+        sqlite_create_gpu_table_query = '''CREATE TABLE IF NOT EXISTS ''' + gpuTitle +'''(Price REAL NOT NULL,joiningDate timestamp)'''
+        sqlite_insert_gpu_query = """INSERT INTO """ + gpuTitle +"""(Price, joiningDate) VALUES (?, ?)"""
+
+        
         cursor.execute(sqlite_create_gpu_table_query)
-        cursor.executemany(sqlite_insert_gpu_query,[helper])
+
+        cursor.execute("""SELECT Price FROM """ + gpuTitle )
+        tempPrice = cursor.fetchone()
+
+        if(float(tempPrice[0]) ==  gpuPrice):
+            cursor.execute('SELECT joiningDate FROM '+gpuTitle)
+            tempDate=cursor.fetchone()
+            created_date = datetime.datetime.strptime(str(tempDate[0]),"%d/%m/%Y")
+            created_date=created_date.strftime("%d/%m/%Y")
+            tempDate = datetime.datetime.today().strftime("%d/%m/%Y")
+            if( created_date == tempDate):
+                break
+            else:
+                continue
+        
+    cursor.executemany(sqlite_insert_gpu_query,[helper])
     sqliteConnection.commit()
-    print("HEre")
-    for obj in records:
-        gpTitle = str(obj[0])
-        gpTitle = gpTitle.replace(" ","_").replace("(","_").replace(")","_").replace(",","_").replace("'","_").replace(".","_").replace("-","_").replace("/","_")
-        print(gpTitle)
-        sqlite_select_query = """SELECT * FROM """+gpTitle
-        cursor.execute( sqlite_select_query)
-        data = cursor.fetchall()
-        for row in data:
-            print("Price: ", row[0])
-            print("Date: ", row[1])
-            print("Finished")
     cursor.close()
+
+
 
 
 def main():
