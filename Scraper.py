@@ -5,9 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 import sqlite3
 import datetime
-
-
-
+import os.path
 
 #Inserting scraped data to database
 def InsertToDatabase(gpuList):
@@ -114,19 +112,17 @@ def CreateAndInsertIntoGpuTables(records):
 
         cursor.execute("""SELECT Price FROM """ + gpuTitle )
         tempPrice = cursor.fetchone()
-
-        if(float(tempPrice[0]) ==  gpuPrice):
+    
+        if(os.path.isfile('databaseInit') and (float(tempPrice[0]) ==  gpuPrice) ):
             cursor.execute('SELECT joiningDate FROM '+gpuTitle)
             tempDate=cursor.fetchone()
             created_date = datetime.datetime.strptime(str(tempDate[0]),"%d/%m/%Y")
             created_date=created_date.strftime("%d/%m/%Y")
             tempDate = datetime.datetime.today().strftime("%d/%m/%Y")
             if( created_date == tempDate):
-                break
-            else:
                 continue
-        
-    cursor.executemany(sqlite_insert_gpu_query,[helper])
+        cursor.executemany(sqlite_insert_gpu_query,[helper])
+
     sqliteConnection.commit()
     cursor.close()
 
@@ -137,7 +133,9 @@ def main():
     ScrapingGpus()
     records = RetrieveFromDb()
     CreateAndInsertIntoGpuTables(records)
-        
+    f = open("databaseInit", "w")
+    f.write("1")
+    f.close()
 
 if __name__ == "__main__":
 
