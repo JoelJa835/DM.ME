@@ -112,7 +112,7 @@ def CreateAndInsertIntoGpuTables(records):
 
         cursor.execute("""SELECT Price FROM """ + gpuTitle )
         tempPrice = cursor.fetchone()
-    
+        
         if(os.path.isfile('databaseInit') and (float(tempPrice[0]) ==  gpuPrice) ):
             cursor.execute('SELECT joiningDate FROM '+gpuTitle)
             tempDate=cursor.fetchone()
